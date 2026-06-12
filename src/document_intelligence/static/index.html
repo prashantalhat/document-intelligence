@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Intelligence</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #232733;
+      --border: #2e3345;
+      --text: #e4e6ed;
+      --text-muted: #8b8fa3;
+      --accent: #6c5ce7;
+      --accent-hover: #7d6ff0;
+      --success: #00cec9;
+      --warning: #fdcb6e;
+      --error: #ff6b6b;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 0 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--success));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--surface);
+      position: relative;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(108, 92, 231, 0.05);
+    }
+
+    .upload-zone.dragover {
+      transform: scale(1.01);
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
+    .upload-zone h2 {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .upload-zone p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-types {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .file-type-badge {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Options Bar */
+    .options-bar {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .options-bar label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .options-bar select {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .options-bar select:focus {
+      border-color: var(--accent);
+    }
+
+    /* File Preview */
+    .file-preview {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-top: 16px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-preview.visible {
+      display: flex;
+    }
+
+    .file-preview .file-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .file-preview .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-preview .file-name {
+      font-weight: 500;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-preview .file-size {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .btn-process {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-process:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-process:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-clear {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-clear:hover {
+      color: var(--error);
+      border-color: var(--error);
+    }
+
+    /* Processing State */
+    .processing-overlay {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .processing-overlay.visible {
+      display: block;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .processing-overlay h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .processing-overlay p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Results */
+    .results-container {
+      display: none;
+      margin-top: 32px;
+    }
+
+    .results-container.visible {
+      display: block;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .results-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .result-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-type {
+      background: rgba(108, 92, 231, 0.15);
+      color: var(--accent);
+    }
+
+    .badge-status {
+      background: rgba(0, 206, 201, 0.15);
+      color: var(--success);
+    }
+
+    .badge-status.failed {
+      background: rgba(255, 107, 107, 0.15);
+      color: var(--error);
+    }
+
+    .badge-time {
+      background: rgba(253, 203, 110, 0.15);
+      color: var(--warning);
+    }
+
+    /* Result Cards */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .result-grid { grid-template-columns: 1fr; }
+    }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .result-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-2);
+    }
+
+    .card-header .card-icon {
+      font-size: 16px;
+    }
+
+    .card-body {
+      padding: 16px 18px;
+    }
+
+    /* Fields Table */
+    .fields-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .fields-table tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fields-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .fields-table td {
+      padding: 10px 0;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    .fields-table .field-name {
+      color: var(--text-muted);
+      font-weight: 500;
+      width: 40%;
+      padding-right: 12px;
+    }
+
+    .fields-table .field-value {
+      font-weight: 500;
+    }
+
+    .confidence-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 8px;
+    }
+
+    .confidence-bar .bar {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .confidence-bar .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .confidence-high { background: var(--success); }
+    .confidence-med  { background: var(--warning); }
+    .confidence-low  { background: var(--error); }
+
+    /* Data Table (extracted tables) */
+    .data-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      background: var(--surface-2);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tr:hover td {
+      background: rgba(108, 92, 231, 0.04);
+    }
+
+    /* Metadata list */
+    .meta-list {
+      list-style: none;
+    }
+
+    .meta-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .meta-list li:last-child {
+      border-bottom: none;
+    }
+
+    .meta-list .meta-key {
+      color: var(--text-muted);
+    }
+
+    .meta-list .meta-val {
+      font-weight: 500;
+      text-align: right;
+    }
+
+    /* JSON viewer */
+    .json-viewer {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre;
+      color: var(--text-muted);
+    }
+
+    .json-viewer .json-key { color: #6c5ce7; }
+    .json-viewer .json-string { color: #00cec9; }
+    .json-viewer .json-number { color: #fdcb6e; }
+    .json-viewer .json-bool { color: #ff6b6b; }
+    .json-viewer .json-null { color: #636e72; }
+
+    /* Error State */
+    .error-box {
+      display: none;
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-top: 24px;
+      color: var(--error);
+      font-size: 14px;
+    }
+
+    .error-box.visible {
+      display: block;
+    }
+
+    .error-box h3 {
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    /* Tab switcher */
+    .tab-bar {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 20px;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      width: fit-content;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .tab-btn:not(.active):hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo">DI</div>
+      <div>
+        <h1>Document Intelligence</h1>
+        <p>Upload financial documents to extract and tag structured data</p>
+      </div>
+    </header>
+
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">&#128196;</div>
+      <h2>Drop your document here</h2>
+      <p>or click to browse files</p>
+      <div class="file-types">
+        <span class="file-type-badge">PDF</span>
+        <span class="file-type-badge">PNG</span>
+        <span class="file-type-badge">JPEG</span>
+        <span class="file-type-badge">DOCX</span>
+        <span class="file-type-badge">XLSX</span>
+        <span class="file-type-badge">TIFF</span>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg,.tiff,.tif,.docx,.xlsx,.pptx,.html">
+    </div>
+
+    <!-- Options -->
+    <div class="options-bar">
+      <label for="docType">Document type:</label>
+      <select id="docType">
+        <option value="">Auto-detect</option>
+        <option value="rental_statement">Rental Statement</option>
+        <option value="invoice">Invoice</option>
+        <option value="bank_statement">Bank Statement</option>
+        <option value="tax_form">Tax Form</option>
+      </select>
+      <label for="outputFormat">Output:</label>
+      <select id="outputFormat">
+        <option value="json">JSON</option>
+        <option value="csv">CSV</option>
+      </select>
+    </div>
+
+    <!-- File Preview -->
+    <div class="file-preview" id="filePreview">
+      <div class="file-icon">&#128196;</div>
+      <div class="file-info">
+        <div class="file-name" id="fileName"></div>
+        <div class="file-size" id="fileSize"></div>
+      </div>
+      <button class="btn-process" id="btnProcess" disabled>Process Document</button>
+      <button class="btn-clear" id="btnClear">Remove</button>
+    </div>
+
+    <!-- Processing -->
+    <div class="processing-overlay" id="processing">
+      <div class="spinner"></div>
+      <h3>Processing document...</h3>
+      <p>Classifying, extracting, and tagging fields</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="errorBox">
+      <h3>Processing failed</h3>
+      <p id="errorMessage"></p>
+    </div>
+
+    <!-- Results -->
+    <div class="results-container" id="results">
+      <div class="results-header">
+        <h2>Extraction Results</h2>
+        <div class="result-badges">
+          <span class="badge badge-type" id="badgeType"></span>
+          <span class="badge badge-status" id="badgeStatus"></span>
+          <span class="badge badge-time" id="badgeTime"></span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="fields">Extracted Fields</button>
+        <button class="tab-btn" data-tab="tables">Tables</button>
+        <button class="tab-btn" data-tab="metadata">Metadata</button>
+        <button class="tab-btn" data-tab="raw">Raw JSON</button>
+      </div>
+
+      <!-- Fields Tab -->
+      <div class="tab-content active" id="tab-fields">
+        <div class="result-card full-width">
+          <div class="card-header">
+            <span class="card-icon">&#127991;</span> Tagged Fields
+          </div>
+          <div class="card-body">
+            <table class="fields-table" id="fieldsTable">
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tables Tab -->
+      <div class="tab-content" id="tab-tables">
+        <div class="result-card full-width" id="tablesCard">
+          <div class="card-header">
+            <span class="card-icon">&#128202;</span> Extracted Tables
+          </div>
+          <div class="card-body" id="tablesBody"></div>
+        </div>
+      </div>
+
+      <!-- Metadata Tab -->
+      <div class="tab-content" id="tab-metadata">
+        <div class="result-card full-width">
+          <div class="card-header">
+            <span class="card-icon">&#128196;</span> Document Metadata
+          </div>
+          <div class="card-body">
+            <ul class="meta-list" id="metaList"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw JSON Tab -->
+      <div class="tab-content" id="tab-raw">
+        <div class="result-card full-width">
+          <div class="card-header">
+            <span class="card-icon">&#128187;</span> API Response
+          </div>
+          <div class="card-body">
+            <div class="json-viewer" id="jsonViewer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/v1';
+
+    // Elements
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const btnProcess = document.getElementById('btnProcess');
+    const btnClear = document.getElementById('btnClear');
+    const docType = document.getElementById('docType');
+    const outputFormat = document.getElementById('outputFormat');
+    const processing = document.getElementById('processing');
+    const errorBox = document.getElementById('errorBox');
+    const errorMessage = document.getElementById('errorMessage');
+    const results = document.getElementById('results');
+
+    let selectedFile = null;
+
+    // --- Upload Zone ---
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      selectedFile = file;
+      fileName.textContent = file.name;
+      fileSize.textContent = formatBytes(file.size);
+      filePreview.classList.add('visible');
+      btnProcess.disabled = false;
+      results.classList.remove('visible');
+      errorBox.classList.remove('visible');
+    }
+
+    btnClear.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      filePreview.classList.remove('visible');
+      btnProcess.disabled = true;
+    });
+
+    // --- Process ---
+    btnProcess.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      processing.classList.add('visible');
+      results.classList.remove('visible');
+      errorBox.classList.remove('visible');
+      btnProcess.disabled = true;
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      if (docType.value) formData.append('document_type', docType.value);
+      formData.append('output_format', outputFormat.value);
+
+      try {
+        const resp = await fetch(`${API_BASE}/process`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        processing.classList.remove('visible');
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+          throw new Error(err.detail || 'Unknown error');
+        }
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.includes('text/csv')) {
+          const csv = await resp.text();
+          showCSVResult(csv);
+        } else {
+          const data = await resp.json();
+          showResults(data);
+        }
+      } catch (err) {
+        processing.classList.remove('visible');
+        errorMessage.textContent = err.message;
+        errorBox.classList.add('visible');
+      } finally {
+        btnProcess.disabled = false;
+      }
+    });
+
+    // --- Render Results ---
+    function showResults(data) {
+      // Badges
+      document.getElementById('badgeType').textContent = formatDocType(data.document_type);
+      const statusBadge = document.getElementById('badgeStatus');
+      statusBadge.textContent = data.status;
+      statusBadge.className = `badge badge-status ${data.status === 'failed' ? 'failed' : ''}`;
+      document.getElementById('badgeTime').textContent = `${Math.round(data.processing_duration_ms)}ms`;
+
+      // Fields
+      const tbody = document.querySelector('#fieldsTable tbody');
+      tbody.innerHTML = '';
+      const fields = data.fields || {};
+      const fieldKeys = Object.keys(fields);
+      if (fieldKeys.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="empty-state">No fields extracted</td></tr>';
+      } else {
+        for (const key of fieldKeys) {
+          const f = fields[key];
+          const conf = f.confidence || 0;
+          const confClass = conf >= 0.8 ? 'confidence-high' : conf >= 0.5 ? 'confidence-med' : 'confidence-low';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="field-name">${formatFieldName(key)}</td>
+            <td class="field-value">
+              ${escapeHtml(String(f.value ?? f.raw_value ?? '—'))}
+              <span class="confidence-bar">
+                <span class="bar"><span class="bar-fill ${confClass}" style="width:${Math.round(conf * 100)}%"></span></span>
+                ${Math.round(conf * 100)}%
+              </span>
+            </td>`;
+          tbody.appendChild(tr);
+        }
+      }
+
+      // Tables
+      const tablesBody = document.getElementById('tablesBody');
+      tablesBody.innerHTML = '';
+      const tables = data.tables || [];
+      if (tables.length === 0) {
+        tablesBody.innerHTML = '<div class="empty-state">No tables found in document</div>';
+      } else {
+        tables.forEach((table, idx) => {
+          if (table.length === 0) return;
+          const wrapper = document.createElement('div');
+          wrapper.className = 'data-table-wrapper';
+          if (idx > 0) wrapper.style.marginTop = '16px';
+          const t = document.createElement('table');
+          t.className = 'data-table';
+
+          const headerRow = table[0];
+          const thead = document.createElement('thead');
+          const headTr = document.createElement('tr');
+          headerRow.forEach(cell => {
+            const th = document.createElement('th');
+            th.textContent = cell;
+            headTr.appendChild(th);
+          });
+          thead.appendChild(headTr);
+          t.appendChild(thead);
+
+          const tbodyEl = document.createElement('tbody');
+          for (let i = 1; i < table.length; i++) {
+            const tr = document.createElement('tr');
+            table[i].forEach(cell => {
+              const td = document.createElement('td');
+              td.textContent = cell;
+              tr.appendChild(td);
+            });
+            tbodyEl.appendChild(tr);
+          }
+          t.appendChild(tbodyEl);
+          wrapper.appendChild(t);
+          tablesBody.appendChild(wrapper);
+        });
+      }
+
+      // Metadata
+      const metaList = document.getElementById('metaList');
+      metaList.innerHTML = '';
+      const meta = data.metadata || {};
+      const metaItems = [
+        ['Filename', meta.filename],
+        ['File Size', meta.file_size_bytes ? formatBytes(meta.file_size_bytes) : '—'],
+        ['MIME Type', meta.mime_type],
+        ['Pages', meta.page_count || '—'],
+        ['Ingested', meta.ingested_at ? new Date(meta.ingested_at).toLocaleString() : '—'],
+        ['Document ID', data.document_id],
+      ];
+      metaItems.forEach(([k, v]) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="meta-key">${k}</span><span class="meta-val">${escapeHtml(String(v ?? '—'))}</span>`;
+        metaList.appendChild(li);
+      });
+
+      // Raw JSON
+      document.getElementById('jsonViewer').innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+
+      results.classList.add('visible');
+      document.querySelector('.tab-btn[data-tab="fields"]').click();
+    }
+
+    function showCSVResult(csv) {
+      document.getElementById('badgeType').textContent = 'CSV';
+      document.getElementById('badgeStatus').textContent = 'completed';
+      document.getElementById('badgeTime').textContent = '';
+
+      document.querySelector('#fieldsTable tbody').innerHTML =
+        '<tr><td colspan="2" class="empty-state">CSV output — see Raw tab</td></tr>';
+      document.getElementById('tablesBody').innerHTML = '';
+      document.getElementById('metaList').innerHTML = '';
+      document.getElementById('jsonViewer').textContent = csv;
+
+      results.classList.add('visible');
+      document.querySelector('.tab-btn[data-tab="raw"]').click();
+    }
+
+    // --- Tabs ---
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    // --- Helpers ---
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function formatDocType(t) {
+      return (t || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function formatFieldName(key) {
+      return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function syntaxHighlight(json) {
+      return json.replace(
+        /("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(\.\d+)?([eE][+-]?\d+)?)/g,
+        (match) => {
+          let cls = 'json-number';
+          if (/^"/.test(match)) {
+            cls = /:$/.test(match) ? 'json-key' : 'json-string';
+          } else if (/true|false/.test(match)) {
+            cls = 'json-bool';
+          } else if (/null/.test(match)) {
+            cls = 'json-null';
+          }
+          return `<span class="${cls}">${match}</span>`;
+        }
+      );
+    }
+  </script>
+</body>
+</html>

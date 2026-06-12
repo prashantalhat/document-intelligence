@@ -1,0 +1,176 @@
+# ---------------------------------------------------------------
+# Document type definitions and field mappings
+#
+# Each top-level key is a DocumentType enum value.
+# `keywords`   -- terms used by the classifier to score candidates.
+# `fields`     -- semantic tag -> list of raw-key aliases.
+# `schema`     -- dotted path to the Pydantic extraction model.
+# ---------------------------------------------------------------
+
+rental_statement:
+  display_name: "Rental / Lease Statement"
+  schema: "document_intelligence.models.rental.RentalStatement"
+  keywords:
+    - rent
+    - tenant
+    - landlord
+    - lease
+    - property
+    - unit
+    - rental statement
+    - balance due
+    - monthly rent
+    - housing
+    - occupant
+  fields:
+    tenant_name:
+      - tenant name
+      - tenant
+      - resident
+      - occupant
+      - renter
+      - lessee
+    landlord_name:
+      - landlord
+      - property manager
+      - management company
+      - owner
+      - lessor
+    property_address:
+      - property address
+      - address
+      - unit address
+      - rental address
+      - premises
+    unit_number:
+      - unit
+      - apt
+      - apartment
+      - suite
+      - unit number
+    rent_amount:
+      - rent
+      - monthly rent
+      - rent amount
+      - base rent
+      - rent charge
+    total_charges:
+      - total charges
+      - total due
+      - amount due
+      - total amount
+      - charges total
+    total_payments:
+      - total payments
+      - payments received
+      - amount paid
+      - credits
+    balance_due:
+      - balance due
+      - balance
+      - outstanding balance
+      - amount owing
+      - remaining balance
+    previous_balance:
+      - previous balance
+      - prior balance
+      - opening balance
+      - carry forward
+    payment_due_date:
+      - due date
+      - payment due
+      - pay by
+      - due by
+    statement_date:
+      - statement date
+      - date
+      - issued
+      - as of
+    period_start:
+      - period start
+      - from
+      - start date
+      - billing start
+    period_end:
+      - period end
+      - to
+      - end date
+      - billing end
+
+invoice:
+  display_name: "Invoice"
+  schema: null  # not yet implemented
+  keywords:
+    - invoice
+    - bill
+    - payment due
+    - invoice number
+    - remittance
+    - purchase order
+    - subtotal
+    - tax
+    - total
+  fields:
+    invoice_number:
+      - invoice number
+      - invoice no
+      - inv #
+      - bill number
+    vendor_name:
+      - vendor
+      - supplier
+      - from
+      - biller
+    total_amount:
+      - total
+      - amount due
+      - grand total
+      - balance due
+
+bank_statement:
+  display_name: "Bank Statement"
+  schema: null
+  keywords:
+    - bank statement
+    - account summary
+    - opening balance
+    - closing balance
+    - transaction
+    - deposit
+    - withdrawal
+    - checking
+    - savings
+  fields:
+    account_number:
+      - account number
+      - account no
+    opening_balance:
+      - opening balance
+      - beginning balance
+    closing_balance:
+      - closing balance
+      - ending balance
+
+tax_form:
+  display_name: "Tax Form"
+  schema: null
+  keywords:
+    - tax return
+    - W-2
+    - "1099"
+    - tax form
+    - IRS
+    - filing
+    - taxable income
+    - federal tax
+    - state tax
+  fields:
+    form_type:
+      - form
+      - form type
+    tax_year:
+      - tax year
+      - year
+    taxable_income:
+      - taxable income
+      - gross income

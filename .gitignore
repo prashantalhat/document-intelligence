@@ -1,0 +1,26 @@
+.DS_Store
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+.claude/.simplify-ignore-cache/
+.claude/sdd-cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Data directories (uploaded files, outputs)
+data/uploads/
+data/output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
