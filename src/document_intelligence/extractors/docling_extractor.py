@@ -71,15 +71,13 @@ class DoclingExtractor(BaseExtractor):
         doc_result = converter.convert(str(file_path))
         document = doc_result.document
 
-        # Raw text + markdown
         raw_md = document.export_to_markdown()
         raw_text = self._markdown_to_plain(raw_md)
-
-        # Tables -- each table is a list of rows, each row a list of cell strings.
         tables = self._extract_tables(document)
 
-        # Structured fields via Pydantic schema (if available).
-        fields = self._structured_extract(file_path, document_type, raw_md)
+        # Try structured extraction from already-converted document first,
+        # only fall back to re-reading file if schema requires it.
+        fields = self._structured_extract(document, file_path, document_type, raw_md)
 
         return ExtractionResult(
             document_id="",  # filled by pipeline
@@ -90,6 +88,10 @@ class DoclingExtractor(BaseExtractor):
             raw_markdown=raw_md,
             extraction_engine="docling",
         )
+
+    def warm_up(self) -> None:
+        """Eagerly initialize heavy ML models."""
+        self._get_converter()
 
     def supports_format(self, mime_type: str) -> bool:
         return mime_type in _SUPPORTED_MIMES
@@ -141,14 +143,14 @@ class DoclingExtractor(BaseExtractor):
 
     def _structured_extract(
         self,
+        document: Any,
         file_path: Path,
         document_type: DocumentType,
         raw_markdown: str,
     ) -> list[ExtractedField]:
-        """Attempt schema-based extraction via Docling's DocumentExtractor.
+        """Attempt schema-based extraction using the already-converted document.
 
-        Falls back to empty list if the schema is not available or the
-        extraction extra is not installed.
+        Falls back to regex if the extraction extra is not installed.
         """
         type_cfg = self._registry.get(document_type)
         if type_cfg is None:
@@ -162,9 +164,12 @@ class DoclingExtractor(BaseExtractor):
             from docling.document_extractor import DocumentExtractor
 
             extractor = self._get_doc_extractor()
-            result = extractor.extract(source=str(file_path), template=schema_cls)
+            # Pass pre-converted document to avoid re-reading file from disk.
+            if hasattr(extractor, "extract_from_document"):
+                result = extractor.extract_from_document(document=document, template=schema_cls)
+            else:
+                result = extractor.extract(source=str(file_path), template=schema_cls)
 
-            # result.pages is a list; aggregate fields from all pages.
             fields: list[ExtractedField] = []
             for page_idx, page in enumerate(result.pages):
                 data: dict[str, Any] = page.extracted_data if hasattr(page, "extracted_data") else {}
@@ -175,7 +180,7 @@ class DoclingExtractor(BaseExtractor):
                         ExtractedField(
                             key=key,
                             value=value,
-                            confidence=0.85,  # Docling does not expose per-field scores yet.
+                            confidence=0.85,
                             page=page_idx + 1,
                         )
                     )

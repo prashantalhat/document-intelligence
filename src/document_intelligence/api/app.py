@@ -30,7 +30,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     logger.info("Starting %s (debug=%s)", settings.app_name, settings.debug)
 
-    app.state.pipeline = DocumentPipeline(settings)
+    pipeline = DocumentPipeline(settings)
+    pipeline.warm_up()
+    app.state.pipeline = pipeline
     app.state.settings = settings
     yield
     logger.info("Shutting down %s", settings.app_name)

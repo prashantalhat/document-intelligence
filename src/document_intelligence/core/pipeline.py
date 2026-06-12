@@ -54,6 +54,13 @@ class DocumentPipeline:
         self._settings.upload_dir.mkdir(parents=True, exist_ok=True)
         self._settings.output_dir.mkdir(parents=True, exist_ok=True)
 
+    def warm_up(self) -> None:
+        """Eagerly load ML models so first request isn't slow."""
+        logger.info("Warming up extraction models...")
+        if isinstance(self._extractor, DoclingExtractor):
+            self._extractor.warm_up()
+        logger.info("Model warm-up complete.")
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------

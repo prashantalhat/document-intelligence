@@ -5,6 +5,7 @@ All endpoints live under ``/api/v1`` (prefix applied in ``app.py``).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import shutil
 import uuid
@@ -93,9 +94,9 @@ async def process_document(
         except ValueError:
             raise HTTPException(status_code=422, detail=f"Unknown document type: {document_type}")
 
-    # -- run pipeline --
+    # -- run pipeline in thread pool to avoid blocking event loop --
     try:
-        result = pipeline.process(dest, document_type=doc_type)
+        result = await asyncio.to_thread(pipeline.process, dest, document_type=doc_type)
     except Exception as exc:
         logger.exception("Pipeline processing failed")
         raise HTTPException(status_code=500, detail=f"Processing failed: {exc}") from exc
@@ -142,27 +143,28 @@ async def process_batch(
         except ValueError:
             raise HTTPException(status_code=422, detail=f"Unknown document type: {document_type}")
 
-    results = []
-    for file in files:
+    semaphore = asyncio.Semaphore(settings.max_concurrent_jobs)
+
+    async def _process_one(file: UploadFile) -> dict:
         upload_id = str(uuid.uuid4())
         suffix = Path(file.filename or "document").suffix
         dest = settings.upload_dir / f"{upload_id}{suffix}"
         try:
             with open(dest, "wb") as fh:
                 shutil.copyfileobj(file.file, fh)
-            result = pipeline.process(dest, document_type=doc_type)
-            results.append(pipeline._json_formatter.format_dict(result))
+            async with semaphore:
+                result = await asyncio.to_thread(pipeline.process, dest, document_type=doc_type)
+            return pipeline._json_formatter.format_dict(result)
         except Exception as exc:
             logger.exception("Batch item failed: %s", file.filename)
-            results.append(
-                {
-                    "filename": file.filename,
-                    "status": ProcessingStatus.FAILED.value,
-                    "error": str(exc),
-                }
-            )
+            return {
+                "filename": file.filename,
+                "status": ProcessingStatus.FAILED.value,
+                "error": str(exc),
+            }
 
-    return JSONResponse(content={"results": results, "total": len(results)})
+    results = await asyncio.gather(*[_process_one(f) for f in files])
+    return JSONResponse(content={"results": list(results), "total": len(results)})
 
 
 # ------------------------------------------------------------------
