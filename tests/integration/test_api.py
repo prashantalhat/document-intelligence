@@ -61,6 +61,57 @@ class TestDocumentTypesEndpoint:
         assert "rental_statement" in keys
 
 
+class TestClassifyEndpoint:
+    async def test_classify_rental(self, client: AsyncClient) -> None:
+        content = (
+            b"Tenant Name: Jane Doe\n"
+            b"Landlord: Acme Properties\n"
+            b"Monthly Rent: $1,500\n"
+            b"Lease term: 12 months\n"
+        )
+        resp = await client.post(
+            "/api/v1/classify",
+            files={"file": ("statement.txt", content, "text/plain")},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["document_type"] == "rental_statement"
+        assert data["confidence"] > 0
+        assert "scores" in data
+        assert "rental_statement" in data["scores"]
+
+    async def test_classify_invoice(self, client: AsyncClient) -> None:
+        content = (
+            b"Invoice Number: INV-2026-001\n"
+            b"Subtotal: $500\n"
+            b"Tax: $50\n"
+            b"Total: $550\n"
+            b"Payment due: 2026-07-01\n"
+        )
+        resp = await client.post(
+            "/api/v1/classify",
+            files={"file": ("doc.txt", content, "text/plain")},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["document_type"] == "invoice"
+
+    async def test_classify_unknown(self, client: AsyncClient) -> None:
+        content = b"Hello world, this is random text with no financial keywords."
+        resp = await client.post(
+            "/api/v1/classify",
+            files={"file": ("random.txt", content, "text/plain")},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["document_type"] == "unknown"
+        assert data["confidence"] == 0.0
+
+    async def test_classify_rejects_missing_file(self, client: AsyncClient) -> None:
+        resp = await client.post("/api/v1/classify")
+        assert resp.status_code == 422
+
+
 class TestProcessEndpoint:
     async def test_rejects_missing_file(self, client: AsyncClient) -> None:
         resp = await client.post("/api/v1/process")

@@ -21,6 +21,7 @@ from document_intelligence.extractors.docling_extractor import DoclingExtractor
 from document_intelligence.formatters.json_formatter import JsonFormatter
 from document_intelligence.formatters.csv_formatter import CsvFormatter
 from document_intelligence.models.documents import (
+    ClassificationResult,
     DocumentMetadata,
     DocumentType,
     ExtractionResult,
@@ -59,11 +60,17 @@ class DocumentPipeline:
         logger.info("Warming up extraction models...")
         if isinstance(self._extractor, DoclingExtractor):
             self._extractor.warm_up()
+            # Share warm converter with classifier to avoid double model load.
+            self._classifier.set_converter(self._extractor._get_converter())
         logger.info("Model warm-up complete.")
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+
+    def classify(self, file_path: str | Path) -> ClassificationResult:
+        """Classify a document without running full extraction."""
+        return self._classifier.classify_with_confidence(Path(file_path))
 
     def process(
         self,

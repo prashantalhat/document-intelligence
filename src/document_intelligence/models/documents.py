@@ -26,6 +26,10 @@ class DocumentType(str, Enum):
     INVOICE = "invoice"
     BANK_STATEMENT = "bank_statement"
     TAX_FORM = "tax_form"
+    PAY_STUB = "pay_stub"
+    RECEIPT = "receipt"
+    UTILITY_BILL = "utility_bill"
+    INSURANCE_DOCUMENT = "insurance_document"
     UNKNOWN = "unknown"
 
 
@@ -39,6 +43,18 @@ class ProcessingStatus(str, Enum):
     FORMATTING = "formatting"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+# ---------------------------------------------------------------------------
+# Classification
+# ---------------------------------------------------------------------------
+
+class ClassificationResult(BaseModel):
+    """Output of the classification stage with confidence scores."""
+
+    document_type: DocumentType
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    scores: dict[str, float] = Field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from document_intelligence.api.schemas import (
+    ClassifyResponse,
     DocumentTypeParam,
     HealthResponse,
     OutputFormatParam,
@@ -38,6 +39,54 @@ _MAX_SIZE = 50 * 1024 * 1024  # 50 MB
 @router.get("/health", response_model=HealthResponse, tags=["ops"])
 async def health() -> HealthResponse:
     return HealthResponse(status="ok", version="0.1.0")
+
+
+# ------------------------------------------------------------------
+# Classify a document (lightweight, no full extraction)
+# ------------------------------------------------------------------
+
+
+@router.post(
+    "/classify",
+    response_model=ClassifyResponse,
+    tags=["documents"],
+    summary="Classify a document without full extraction",
+)
+async def classify_document(
+    request: Request,
+    file: Annotated[UploadFile, File(description="The document to classify")],
+) -> ClassifyResponse:
+    """Upload a file and get its document type classification with confidence scores.
+
+    Much faster than /process — only reads enough to classify, skips extraction.
+    """
+    settings = request.app.state.settings
+    pipeline = request.app.state.pipeline
+
+    if file.size and file.size > _MAX_SIZE:
+        raise HTTPException(status_code=413, detail="File exceeds 50 MB limit.")
+
+    upload_id = str(uuid.uuid4())
+    suffix = Path(file.filename or "document").suffix
+    dest = settings.upload_dir / f"{upload_id}{suffix}"
+    try:
+        with open(dest, "wb") as fh:
+            shutil.copyfileobj(file.file, fh)
+    except Exception as exc:
+        logger.exception("Failed to save upload")
+        raise HTTPException(status_code=500, detail="Failed to save uploaded file.") from exc
+
+    try:
+        result = await asyncio.to_thread(pipeline.classify, dest)
+    except Exception as exc:
+        logger.exception("Classification failed")
+        raise HTTPException(status_code=500, detail=f"Classification failed: {exc}") from exc
+
+    return ClassifyResponse(
+        document_type=result.document_type.value,
+        confidence=result.confidence,
+        scores=result.scores,
+    )
 
 
 # ------------------------------------------------------------------

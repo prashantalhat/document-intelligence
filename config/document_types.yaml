@@ -12,6 +12,8 @@ rental_statement:
   schema: "document_intelligence.models.rental.RentalStatement"
   keywords:
     - rent
+    - rented
+    - rental
     - tenant
     - landlord
     - lease
@@ -22,6 +24,13 @@ rental_statement:
     - monthly rent
     - housing
     - occupant
+    - rent paid
+    - management fees
+    - strata
+    - letting
+    - tenancy
+    - lessee
+    - lessor
   fields:
     tenant_name:
       - tenant name
@@ -102,14 +111,18 @@ invoice:
   schema: null  # not yet implemented
   keywords:
     - invoice
-    - bill
-    - payment due
     - invoice number
+    - invoice date
     - remittance
     - purchase order
-    - subtotal
-    - tax
-    - total
+    - bill to
+    - ship to
+    - line items
+    - qty
+    - unit price
+    - due upon receipt
+    - net 30
+    - accounts payable
   fields:
     invoice_number:
       - invoice number
@@ -135,11 +148,16 @@ bank_statement:
     - account summary
     - opening balance
     - closing balance
-    - transaction
-    - deposit
     - withdrawal
-    - checking
-    - savings
+    - checking account
+    - savings account
+    - available balance
+    - statement period
+    - direct debit
+    - bank charges
+    - BSB
+    - sort code
+    - IBAN
   fields:
     account_number:
       - account number
@@ -174,3 +192,176 @@ tax_form:
     taxable_income:
       - taxable income
       - gross income
+
+pay_stub:
+  display_name: "Pay Stub / Payslip"
+  schema: null
+  keywords:
+    - pay stub
+    - payslip
+    - pay slip
+    - earnings statement
+    - gross pay
+    - net pay
+    - deductions
+    - employer
+    - employee
+    - pay period
+    - YTD
+    - withholding
+    - salary
+    - hourly rate
+  fields:
+    employee_name:
+      - employee name
+      - employee
+      - worker
+      - payee
+    employer_name:
+      - employer
+      - company
+      - employer name
+    gross_pay:
+      - gross pay
+      - gross earnings
+      - total earnings
+      - gross
+    net_pay:
+      - net pay
+      - net earnings
+      - take home
+      - net
+    pay_period:
+      - pay period
+      - period
+      - pay date
+    deductions:
+      - deductions
+      - total deductions
+      - withholdings
+
+receipt:
+  display_name: "Receipt"
+  schema: null
+  keywords:
+    - receipt
+    - thank you for your purchase
+    - items purchased
+    - change due
+    - card ending
+    - POS
+    - cashier
+    - transaction number
+    - payment received
+    - your order
+  fields:
+    merchant_name:
+      - merchant
+      - store
+      - shop
+      - vendor
+    transaction_date:
+      - date
+      - transaction date
+      - purchase date
+    total_amount:
+      - total
+      - amount
+      - grand total
+      - total paid
+    payment_method:
+      - payment method
+      - paid by
+      - card
+      - cash
+
+utility_bill:
+  display_name: "Utility Bill"
+  schema: null
+  keywords:
+    - utility bill
+    - electricity
+    - gas bill
+    - water bill
+    - usage
+    - meter reading
+    - billing period
+    - account number
+    - kilowatt
+    - kWh
+    - cubic
+    - service address
+    - energy
+    - power
+  fields:
+    provider_name:
+      - provider
+      - utility company
+      - supplier
+      - service provider
+    account_number:
+      - account number
+      - account no
+      - customer number
+    billing_period:
+      - billing period
+      - service period
+      - period
+    amount_due:
+      - amount due
+      - total due
+      - balance due
+      - total charges
+    usage:
+      - usage
+      - consumption
+      - meter reading
+      - kWh
+    service_address:
+      - service address
+      - property address
+      - supply address
+
+insurance_document:
+  display_name: "Insurance Document"
+  schema: null
+  keywords:
+    - insurance
+    - policy
+    - policyholder
+    - premium
+    - coverage
+    - deductible
+    - claim
+    - insured
+    - underwriter
+    - certificate of insurance
+    - liability
+    - endorsement
+    - beneficiary
+  fields:
+    policy_number:
+      - policy number
+      - policy no
+      - certificate number
+    policyholder:
+      - policyholder
+      - insured
+      - named insured
+    premium:
+      - premium
+      - annual premium
+      - monthly premium
+    coverage_amount:
+      - coverage
+      - sum insured
+      - limit
+      - coverage amount
+    effective_date:
+      - effective date
+      - start date
+      - inception date
+    expiry_date:
+      - expiry date
+      - end date
+      - expiration date

@@ -15,6 +15,10 @@ class DocumentTypeParam(str, Enum):
     invoice = "invoice"
     bank_statement = "bank_statement"
     tax_form = "tax_form"
+    pay_stub = "pay_stub"
+    receipt = "receipt"
+    utility_bill = "utility_bill"
+    insurance_document = "insurance_document"
 
 
 class OutputFormatParam(str, Enum):
@@ -27,6 +31,12 @@ class OutputFormatParam(str, Enum):
 class HealthResponse(BaseModel):
     status: str = "ok"
     version: str = "0.1.0"
+
+
+class ClassifyResponse(BaseModel):
+    document_type: str
+    confidence: float
+    scores: dict[str, float] = Field(default_factory=dict)
 
 
 class FieldOutput(BaseModel):
